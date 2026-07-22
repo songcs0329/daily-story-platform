@@ -24,18 +24,34 @@ apps/api의 NestJS 리소스 스캐폴딩 전문가다.
 - 콘텐츠는 크론으로 생성되므로 사용자가 직접 생성/수정하는 쓰기 엔드포인트(POST/PATCH/DELETE)는 요청받지 않는 한 만들지 않는다. 조회(GET)와 조회수 증가 정도만 기본으로 상정한다.
 - 장르는 `Genre` 유니언 타입(`packages/shared`)으로 충분하다 — genres 테이블이나 이를 위한 리포지토리/모듈을 만들지 않는다.
 
-## 생성 규칙 (표준 Nest 리소스 구조)
+## 네이밍 컨벤션 (필수)
 
-리소스명 `Post`, 경로 `apps/api/src/post/` 기준 예시:
+**폴더/모듈/컨트롤러/서비스/엔티티/라우트 전부 복수형**을 쓴다 (예: `posts`, `Posts*`, `PostsEntity`, `/posts`). 관심사별로 하위 폴더에 분리한다 — 아래 폴더는 해당하는 파일이 실제로 필요할 때만 만든다 (전부 미리 만들지 않음):
+
+| 폴더 | 파일명 패턴 | 용도 |
+|---|---|---|
+| `entities/` | `posts.entity.ts` | TypeORM 엔티티 |
+| `dto/` | `post-query.dto.ts` | 요청 바디/쿼리 검증 |
+| `constants/` | `posts.constant.ts` | 상수 |
+| `decorators/` | `xxx.decorator.ts` | 커스텀 데코레이터 |
+| `interceptors/` | `xxx.interceptor.ts` | 인터셉터 |
+| `middleware/` | `xxx.middleware.ts` | 미들웨어 |
+| `filters/` | `xxx.filter.ts` | 예외 필터 (exception filter) |
+
+리소스명 `Post` → 폴더 `posts`, 지금 실제로 있는 것만 포함한 예:
 
 ```
-post/
-├── post.module.ts
-├── post.controller.ts
-├── post.service.ts
+apps/api/src/posts/
+├── posts.module.ts
+├── posts.controller.ts       # PostsController
+├── posts.service.ts          # PostsService
+├── entities/
+│   └── posts.entity.ts       # PostsEntity
 └── dto/
-    └── post-query.dto.ts   # 필요한 경우만 (페이지네이션 등)
+    └── post-query.dto.ts     # 필요한 경우만 (페이지네이션 등)
 ```
+
+## 생성 규칙 (표준 Nest 리소스 구조)
 
 ### DTO
 
@@ -54,37 +70,48 @@ export class PostQueryDto {
 }
 ```
 
-### Service (`post.service.ts`)
+### Service (`posts.service.ts`)
 
-요청받은 메소드만 정의한다. 영속 계층(Supabase)이 아직 연결되지 않았다면 in-memory 배열로 동작하는 최소 구현을 만들고 주석으로 `// TODO: replace with Supabase persistence`를 남긴다.
-
-### Controller (`post.controller.ts`)
+요청받은 메소드만 정의한다. TypeORM 리포지토리는 `@InjectRepository(PostsEntity)`로 주입한다 (`apps/api/src/posts/entities/posts.entity.ts` 참조, TypeORM은 이미 `app.module.ts`에 연결되어 있음).
 
 ```ts
-import { Controller, Get, Param } from '@nestjs/common';
-import { PostService } from './post.service';
+@Injectable()
+export class PostsService {
+  constructor(
+    @InjectRepository(PostsEntity)
+    private readonly postRepository: Repository<PostsEntity>,
+  ) {}
+  // ...
+}
+```
+
+### Controller (`posts.controller.ts`)
+
+```ts
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { PostsService } from './posts.service';
 
 @Controller('posts')
-export class PostController {
-  constructor(private readonly postService: PostService) {}
+export class PostsController {
+  constructor(private readonly postsService: PostsService) {}
 
   @Get()
   findAll() {
-    return this.postService.findAll();
+    return this.postsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.postsService.findOne(id);
   }
 }
 ```
 
 요청받은 엔드포인트만 생성한다 — CRUD 전체를 기본값으로 만들지 않는다.
 
-### Module (`post.module.ts`)
+### Module (`posts.module.ts`)
 
-controller/service를 등록하고, `apps/api/src/app.module.ts`의 `imports`에 추가한다.
+`TypeOrmModule.forFeature([PostsEntity])`, controller/service를 등록하고, `apps/api/src/app.module.ts`의 `imports`에 추가한다.
 
 ## 출력
 

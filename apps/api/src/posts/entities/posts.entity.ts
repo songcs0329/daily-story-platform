@@ -3,7 +3,7 @@ import { GENRES } from 'shared';
 import type { Genre, Post } from 'shared';
 
 @Entity('posts')
-export class PostEntity implements Post {
+export class PostsEntity implements Post {
   @PrimaryGeneratedColumn()
   id: number;
 

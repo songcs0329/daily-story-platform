@@ -72,7 +72,9 @@ pnpm --filter shared build      # 공용 타입 컴파일
 
 ### apps/api
 
-`nest new`로 생성한 기본 NestJS 스캐폴드, 모듈/컨트롤러/서비스 구조 그대로 유지 중. 새 리소스는 `nest g module/controller/service <name>` 또는 `server-scaffolder` 에이전트로 확장한다.
+`nest new`로 생성한 기본 NestJS 스캐폴드. 새 리소스는 `nest g module/controller/service <name>` 또는 `server-scaffolder` 에이전트로 확장한다.
+
+리소스 모듈은 `src/posts/`처럼 **전부 복수형**으로 만든다 — 폴더/모듈/컨트롤러/서비스/엔티티/라우트 모두 (`PostsModule`, `PostsController`, `PostsService`, `PostsEntity`, 라우트 `/posts`). 관심사별 하위 폴더(필요한 것만 생성): `entities/`, `dto/`, `constants/`, `decorators/`, `interceptors/`, `middleware/`, `filters/`(exception filter). 상세 파일명 패턴은 `server-scaffolder` 에이전트 참조.
 
 ## 컨벤션
 
