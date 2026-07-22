@@ -1,0 +1,8 @@
+declare namespace TemplateType {
+  interface Todo {
+    userId: number;
+    id: number;
+    title: string;
+    completed: boolean;
+  }
+}
