@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import apiManager from '@/libs/apis/apiManager';
 
-export default function useGetTodo(todoId: number | undefined) {
+export default function useGetPost(postId: number | undefined) {
   return useQuery({
-    queryKey: ['todo', todoId],
+    queryKey: ['post', postId],
     queryFn: async function () {
-      const { data } = await apiManager.getTodo(todoId!);
+      const { data } = await apiManager.getPost(postId!);
       return data;
     },
-    enabled: !!todoId,
+    enabled: !!postId,
   });
 }

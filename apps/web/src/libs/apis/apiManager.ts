@@ -1,8 +1,12 @@
+import type { Post } from 'shared';
 import restClient from '@/libs/apis/restClient';
 
 const apiManager = {
-  getTodo: async (todoId: number) => {
-    return await restClient.get<ApiResponse.GetTodoResponse>(`/todos/${todoId}`);
+  getPosts: async () => {
+    return await restClient.get<Post[]>('/posts');
+  },
+  getPost: async (postId: number) => {
+    return await restClient.get<Post>(`/posts/${postId}`);
   },
 };
 
