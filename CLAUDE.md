@@ -28,7 +28,7 @@ pnpm workspaces 기반 모노레포 (`pnpm-workspace.yaml`: `apps/*`, `packages/
 
 ### 외부 연동 (예정)
 
-- DB/Storage: Supabase (Postgres + Storage)
+- DB/Storage: Supabase (Postgres + Storage). 스키마는 `supabase/schema.sql`에서 관리 — `apps/api/src/posts/entities/*.entity.ts`와 1:1로 맞춰야 하며, 엔티티를 바꾸면 이 파일도 같이 갱신한다.
 - 텍스트/이미지 생성: Gemini API
 - 크론 트리거: GitHub Actions scheduled workflow
 - 배포: Render(`apps/api`), Vercel(`apps/web`)
