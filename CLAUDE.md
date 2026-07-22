@@ -1,0 +1,82 @@
+# CLAUDE.md
+
+이 파일은 Claude Code(claude.ai/code)가 이 저장소에서 작업할 때 참고하는 가이드다.
+
+## 프로젝트: 일일 단편 소설 연재 게시판
+
+매일 AI로 단편소설 1편 + 썸네일을 자동 생성해 DB에 저장하고, 웹에서 열람하는 서비스.
+
+### MVP 스코프
+
+**한다**
+- 매일 1편 생성 (6~9월 공포 / 나머지 로맨스, 하드코딩 분기)
+- 리스트/상세 페이지, 조회수
+
+**안 한다** (금지 규칙 — 지금 규모에 안 맞는 조기 추상화 금지)
+- 유저 인증, 댓글, 좋아요
+- `genres` 테이블 등 장르 무한 확장 구조, 전략 패턴 — 장르는 지금 `Genre` 유니언 타입으로 충분. 장르가 3개 이상으로 늘어날 때만 DB 테이블화 검토
+
+## 구조
+
+pnpm workspaces 기반 모노레포 (`pnpm-workspace.yaml`: `apps/*`, `packages/*`).
+
+| 앱/패키지 | 경로 | 스택 |
+|---|---|---|
+| 프론트엔드 | `apps/web` | Vite + React 19 + TanStack Query + Zustand + TailwindCSS v4 |
+| 백엔드 | `apps/api` | NestJS |
+| 공용 타입 | `packages/shared` | `Post`, `Genre` 등 프론트/백엔드 공용 타입. `pnpm --filter shared build`로 `dist/`에 컴파일 (main/types가 dist를 가리킴) |
+
+### 외부 연동 (예정)
+
+- DB/Storage: Supabase (Postgres + Storage)
+- 텍스트/이미지 생성: Gemini API
+- 크론 트리거: GitHub Actions scheduled workflow
+- 배포: Render(`apps/api`), Vercel(`apps/web`)
+
+## 명령어
+
+```bash
+pnpm install                    # 전체 워크스페이스 의존성 설치 (루트에서 실행)
+
+pnpm --filter web dev           # 프론트엔드 개발 서버
+pnpm --filter web build         # tsc -b && vite build
+pnpm --filter web lint          # eslint
+
+pnpm --filter api start:dev     # 백엔드 개발 서버 (watch)
+pnpm --filter api build         # nest build
+pnpm --filter api lint          # eslint --fix
+
+pnpm --filter shared build      # 공용 타입 컴파일
+```
+
+## 아키텍처
+
+### apps/web
+
+진입점: `src/main.tsx` (`QueryClientProvider` 마운트) → `src/App.tsx` (라우트 정의).
+
+| 레이어 | 경로 | 역할 |
+|---|---|---|
+| Pages | `src/pages/` | 라우트 단위 화면 |
+| Components | `src/components/` | 재사용 가능한 UI |
+| Hooks | `src/hooks/` | API 훅: `use` + apiManager 메소드명 (예: `getTodo` → `useGetTodo`); 로직 훅: 성격별 접미사 (예: `useXxxForm`) |
+| Stores | `src/stores/` | Zustand — 여러 페이지에서 공유되는 상태에만 사용 |
+| API client | `src/libs/apis/restClient.ts` | Axios 인스턴스, 항상 `{ status, data }` 반환 |
+| API methods | `src/libs/apis/apiManager.ts` | `restClient`를 호출하는 도메인 함수, `ApiResponse.*`로 타입 지정 |
+| Types | `src/libs/types/` | 전역 타입 선언 (도메인 공용 타입인 `Post`/`Genre`는 `packages/shared`를 사용) |
+| Utils | `src/libs/utils/` | `cn()` (clsx + tailwind-merge), `storageUtils` |
+
+데이터 흐름: `Page/Component → useXxx 훅 → apiManager.getXxx() → restClient.get<ApiResponse.Xxx>()`
+
+경로 별칭 `@`는 `src/`로 해석된다 (`vite.config.ts`, `tsconfig.json` 양쪽에 설정).
+
+### apps/api
+
+`nest new`로 생성한 기본 NestJS 스캐폴드, 모듈/컨트롤러/서비스 구조 그대로 유지 중. 새 리소스는 `nest g module/controller/service <name>` 또는 `server-scaffolder` 에이전트로 확장한다.
+
+## 컨벤션
+
+- 두 앱 모두 동일한 `.prettierrc` 값(singleQuote, semi, printWidth 120, trailingComma all)과 `import/order` eslint 규칙(builtin → external → internal → parent → sibling → index → object → type, 그룹 간 빈 줄 없음)을 공유한다.
+- 루트 `.gitignore`가 모든 워크스페이스의 `node_modules`, `dist`, `.env*`를 커버한다 — 앱별 `.gitignore`는 불필요.
+- 프론트/백엔드가 공유하는 도메인 타입(`Post`, `Genre`)은 `packages/shared`에서 관리한다 — 각 앱에 중복 정의하지 않는다.
+- 장르 분기 로직은 지금은 하드코딩 유지. 장르가 3개 이상으로 늘어나기 전까지 테이블화/전략 패턴 등으로 미리 확장하지 않는다.
