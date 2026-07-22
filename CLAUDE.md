@@ -24,7 +24,7 @@ pnpm workspaces 기반 모노레포 (`pnpm-workspace.yaml`: `apps/*`, `packages/
 |---|---|---|
 | 프론트엔드 | `apps/web` | Vite + React 19 + TanStack Query + Zustand + TailwindCSS v4 |
 | 백엔드 | `apps/api` | NestJS |
-| 공용 타입 | `packages/shared` | `Post`, `Genre` 등 프론트/백엔드 공용 타입. `pnpm --filter shared build`로 `dist/`에 컴파일 (main/types가 dist를 가리킴) |
+| 공용 타입 | `packages/shared` | `Post`, `Genre` 등 프론트/백엔드 공용 타입. `pnpm install` 시 `prepare` 스크립트가 자동으로 `dist/`에 컴파일 (main/types가 dist를 가리킴) — 타입 수정 후에는 `pnpm --filter shared build`로 재빌드 |
 
 ### 외부 연동 (예정)
 
@@ -47,6 +47,7 @@ pnpm --filter api build         # nest build
 pnpm --filter api lint          # eslint --fix
 
 pnpm --filter shared build      # 공용 타입 컴파일
+pnpm --filter shared lint       # eslint
 ```
 
 ## 아키텍처
@@ -62,7 +63,7 @@ pnpm --filter shared build      # 공용 타입 컴파일
 | Hooks | `src/hooks/` | API 훅: `use` + apiManager 메소드명 (예: `getTodo` → `useGetTodo`); 로직 훅: 성격별 접미사 (예: `useXxxForm`) |
 | Stores | `src/stores/` | Zustand — 여러 페이지에서 공유되는 상태에만 사용 |
 | API client | `src/libs/apis/restClient.ts` | Axios 인스턴스, 항상 `{ status, data }` 반환 |
-| API methods | `src/libs/apis/apiManager.ts` | `restClient`를 호출하는 도메인 함수, `ApiResponse.*`로 타입 지정 |
+| API methods | `src/libs/apis/apiManager.ts` | `restClient`를 호출하는 도메인 함수. 공용 타입은 `packages/shared`(예: `Post`)로 직접 지정, 이 앱만의 일회성 응답 타입만 `ApiResponse.*`(`src/libs/types/api-response.d.ts`)에 선언 |
 | Types | `src/libs/types/` | 전역 타입 선언 (도메인 공용 타입인 `Post`/`Genre`는 `packages/shared`를 사용) |
 | Utils | `src/libs/utils/` | `cn()` (clsx + tailwind-merge), `storageUtils` |
 
@@ -78,7 +79,7 @@ pnpm --filter shared build      # 공용 타입 컴파일
 
 ## 컨벤션
 
-- 두 앱 모두 동일한 `.prettierrc` 값(singleQuote, semi, printWidth 120, trailingComma all)과 `import/order` eslint 규칙(builtin → external → internal → parent → sibling → index → object → type, 그룹 간 빈 줄 없음)을 공유한다.
+- ESLint/Prettier는 루트 하나(`eslint.config.mjs`, `.prettierrc`)로 `apps/web`, `apps/api`, `packages/shared` 전체를 커버한다 — 앱별 설정 파일 없음. 루트 config 안에서 `files` 글롭으로 앱별 규칙(web=브라우저 globals+React 플러그인, api=Node globals+타입체크)을 분기한다. 새 workspace를 추가하면 이 파일에 블록을 하나 더 추가한다.
 - 루트 `.gitignore`가 모든 워크스페이스의 `node_modules`, `dist`, `.env*`를 커버한다 — 앱별 `.gitignore`는 불필요.
 - 프론트/백엔드가 공유하는 도메인 타입(`Post`, `Genre`)은 `packages/shared`에서 관리한다 — 각 앱에 중복 정의하지 않는다.
 - 장르 분기 로직은 지금은 하드코딩 유지. 장르가 3개 이상으로 늘어나기 전까지 테이블화/전략 패턴 등으로 미리 확장하지 않는다.
