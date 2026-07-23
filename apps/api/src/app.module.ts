@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GenerationModule } from './generation/generation.module';
 import { PostsEntity } from './posts/entities/posts.entity';
 import { PostsModule } from './posts/posts.module';
 
@@ -22,6 +23,7 @@ import { PostsModule } from './posts/posts.module';
       }),
     }),
     PostsModule,
+    GenerationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

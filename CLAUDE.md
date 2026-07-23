@@ -26,12 +26,12 @@ pnpm workspaces 기반 모노레포 (`pnpm-workspace.yaml`: `apps/*`, `packages/
 | 백엔드 | `apps/api` | NestJS |
 | 공용 타입 | `packages/shared` | `Post`, `Genre` 등 프론트/백엔드 공용 타입. `pnpm install` 시 `prepare` 스크립트가 자동으로 `dist/`에 컴파일 (main/types가 dist를 가리킴) — 타입 수정 후에는 `pnpm --filter shared build`로 재빌드 |
 
-### 외부 연동 (예정)
+### 외부 연동
 
 - DB/Storage: Supabase (Postgres + Storage). 스키마는 `supabase/schema.sql`에서 관리 — `apps/api/src/posts/entities/*.entity.ts`와 1:1로 맞춰야 하며, 엔티티를 바꾸면 이 파일도 같이 갱신한다.
-- 텍스트/이미지 생성: Gemini API
-- 크론 트리거: GitHub Actions scheduled workflow
-- 배포: Render(`apps/api`), Vercel(`apps/web`)
+- 텍스트/이미지 생성: Gemini API (`apps/api/src/generation/`). 텍스트는 `gemini-3.6-flash`, 썸네일은 `gemini-2.5-flash-image` — 이미지 생성 모델은 무료 티어 쿼터가 0이라 Google Cloud 프로젝트에 결제 연결 필수. `POST /generation`(헤더 `x-generation-secret`, `GENERATION_SECRET` 환경변수와 일치해야 함)으로 트리거 — 아직 크론에는 안 붙어 있음
+- 크론 트리거: GitHub Actions scheduled workflow (예정) — `POST /generation` 매일 1회 호출
+- 배포: Render(`apps/api`), Vercel(`apps/web`) (예정)
 
 ## 명령어
 
