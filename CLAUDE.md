@@ -77,6 +77,8 @@ pnpm --filter shared lint       # eslint
 
 리소스 모듈은 `src/posts/`처럼 **전부 복수형**으로 만든다 — 폴더/모듈/컨트롤러/서비스/엔티티/라우트 모두 (`PostsModule`, `PostsController`, `PostsService`, `PostsEntity`, 라우트 `/posts`). 관심사별 하위 폴더(필요한 것만 생성): `entities/`, `dto/`, `constants/`, `decorators/`, `interceptors/`, `middleware/`, `filters/`(exception filter). 상세 파일명 패턴은 `server-scaffolder` 에이전트 참조.
 
+컨트롤러/서비스 메소드명은 `findAll`/`findOne`처럼 내장 함수(Array.prototype, TypeORM Repository 등)와 헷갈리는 이름 대신 `getPosts`/`getPost`처럼 도메인이 드러나는 이름을 쓴다.
+
 ## 컨벤션
 
 - ESLint/Prettier는 루트 하나(`eslint.config.mjs`, `.prettierrc`)로 `apps/web`, `apps/api`, `packages/shared` 전체를 커버한다 — 앱별 설정 파일 없음. 루트 config 안에서 `files` 글롭으로 앱별 규칙(web=브라우저 globals+React 플러그인, api=Node globals+타입체크)을 분기한다. 새 workspace를 추가하면 이 파일에 블록을 하나 더 추가한다.

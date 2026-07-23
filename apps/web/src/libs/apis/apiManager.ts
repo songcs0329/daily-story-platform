@@ -1,9 +1,9 @@
-import type { Post } from 'shared';
+import type { Paginated, Post } from 'shared';
 import restClient from '@/libs/apis/restClient';
 
 const apiManager = {
-  getPosts: async () => {
-    return await restClient.get<Post[]>('/posts');
+  getPosts: async (params?: { page?: number; limit?: number }) => {
+    return await restClient.get<Paginated<Post>>('/posts', params);
   },
   getPost: async (postId: number) => {
     return await restClient.get<Post>(`/posts/${postId}`);

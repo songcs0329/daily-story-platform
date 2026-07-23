@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import useGetPosts from '@/hooks/useGetPosts';
 
@@ -6,8 +7,13 @@ const genreLabels = {
   romance: '로맨스',
 } as const;
 
+const LIMIT = 9;
+
 function Posts() {
-  const { data: posts, isLoading, isError } = useGetPosts();
+  const [page, setPage] = useState(1);
+  const { data: paginatedPosts, isLoading, isError } = useGetPosts({ page, limit: LIMIT });
+  const posts = paginatedPosts?.data;
+  const totalPages = paginatedPosts ? Math.max(1, Math.ceil(paginatedPosts.total / paginatedPosts.limit)) : 1;
 
   const renderContent = () => {
     if (isLoading) {
@@ -78,6 +84,30 @@ function Posts() {
         </section>
 
         {renderContent()}
+
+        {posts && posts.length > 0 && (
+          <div className="flex items-center justify-center gap-4">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              이전
+            </button>
+            <span className="text-sm text-zinc-500">
+              {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((current) => current + 1)}
+              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              다음
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );

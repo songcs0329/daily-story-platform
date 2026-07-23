@@ -2,6 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PostsEntity } from './entities/posts.entity';
+import type { Paginated } from 'shared';
+
+const MAX_LIMIT = 50;
 
 @Injectable()
 export class PostsService {
@@ -10,11 +13,17 @@ export class PostsService {
     private readonly postRepository: Repository<PostsEntity>,
   ) {}
 
-  findAll(): Promise<PostsEntity[]> {
-    return this.postRepository.find({ order: { publishedAt: 'DESC' } });
+  async getPosts(page: number, limit: number): Promise<Paginated<PostsEntity>> {
+    const take = Math.min(limit, MAX_LIMIT);
+    const [data, total] = await this.postRepository.findAndCount({
+      order: { publishedAt: 'DESC' },
+      skip: (page - 1) * take,
+      take,
+    });
+    return { data, total, page, limit: take };
   }
 
-  async findOne(id: number): Promise<PostsEntity> {
+  async getPost(id: number): Promise<PostsEntity> {
     const post = await this.postRepository.findOneBy({ id });
     if (!post) {
       throw new NotFoundException(`Post ${id} not found`);
