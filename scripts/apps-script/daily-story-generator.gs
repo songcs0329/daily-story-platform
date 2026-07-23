@@ -304,7 +304,17 @@ function insertPostToSupabase_(post) {
 
 // ── 메인: 이 함수를 시간 기반 트리거에 연결한다 ──
 function generateDailyPost() {
-  if (hasTodayPost_()) {
+  generateDailyPost_(false);
+}
+
+// 테스트용: 오늘자 게시물이 있어도 무시하고 강제로 다시 생성한다.
+// 트리거에는 연결하지 말 것 — 수동 실행 전용.
+function testGenerateDailyPost() {
+  generateDailyPost_(true);
+}
+
+function generateDailyPost_(force) {
+  if (!force && hasTodayPost_()) {
     Logger.log('오늘자 게시물이 이미 있어 스킵합니다.');
     return;
   }
