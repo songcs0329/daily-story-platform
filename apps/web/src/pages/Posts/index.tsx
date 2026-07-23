@@ -34,7 +34,7 @@ function Posts() {
       return (
         <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="h-64 animate-pulse rounded-lg bg-zinc-100" />
+            <div key={index} className={`h-64 animate-pulse rounded-lg ${featuredTheme.placeholder}`} />
           ))}
         </div>
       );
@@ -62,9 +62,9 @@ function Posts() {
           <Link
             key={post.id}
             to={`/posts/${post.id}`}
-            className={`group grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:shadow-md ${GENRE_THEME[post.genre].cardHover}`}
+            className={`group grid overflow-hidden rounded-lg border shadow-sm transition hover:shadow-md ${featuredTheme.surface} ${GENRE_THEME[post.genre].cardHover}`}
           >
-            <div className="aspect-video w-full overflow-hidden bg-zinc-100">
+            <div className={`aspect-video w-full overflow-hidden ${featuredTheme.placeholder}`}>
               <img
                 src={post.thumbnailUrl}
                 alt={post.title}
@@ -78,8 +78,10 @@ function Posts() {
               >
                 {GENRE_THEME[post.genre].label}
               </span>
-              <h2 className="line-clamp-2 text-lg font-bold tracking-normal text-zinc-950">{post.title}</h2>
-              <div className="flex items-center justify-between text-xs text-zinc-500">
+              <h2 className={`line-clamp-2 text-lg font-bold tracking-normal ${featuredTheme.heading}`}>
+                {post.title}
+              </h2>
+              <div className={`flex items-center justify-between text-xs ${featuredTheme.muted}`}>
                 <span>{new Date(post.publishedAt).toLocaleDateString('ko-KR')}</span>
                 <span>조회 {post.viewCount}</span>
               </div>
@@ -91,16 +93,16 @@ function Posts() {
   };
 
   return (
-    <main className="min-h-screen bg-stone-50 px-4 py-6 text-zinc-900 sm:px-8 sm:py-8">
+    <main className={`min-h-screen px-4 py-6 sm:px-8 sm:py-8 ${featuredTheme.pageBg}`}>
       <div className="mx-auto grid w-full max-w-5xl gap-8">
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
           <p className={`text-sm font-semibold ${featuredTheme.accent}`}>
             매일 한 편 · 이번 시즌은 {featuredTheme.label}
           </p>
-          <h1 className="mt-3 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">
+          <h1 className={`mt-3 text-2xl font-bold tracking-normal sm:text-3xl ${featuredTheme.heading}`}>
             하루 한 편, 오늘의 이야기
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
+          <p className={`mt-3 max-w-2xl text-sm leading-6 ${featuredTheme.muted}`}>
             {featured === 'horror'
               ? '여름밤, 매일 새로 쓰인 공포 단편으로 서늘하게.'
               : '매일 새로 쓰인 로맨스 단편으로 설레는 하루를.'}
@@ -111,7 +113,7 @@ function Posts() {
 
         <div ref={sentinelRef} />
 
-        {isFetchingNextPage && <div className="h-24 animate-pulse rounded-lg bg-zinc-100" />}
+        {isFetchingNextPage && <div className={`h-24 animate-pulse rounded-lg ${featuredTheme.placeholder}`} />}
       </div>
     </main>
   );

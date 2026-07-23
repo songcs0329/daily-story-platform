@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router';
+import { getTodayGenre } from 'shared';
 import useGetPost from '@/hooks/useGetPost';
 import { GENRE_THEME } from '@/libs/utils/genreTheme';
 
@@ -7,6 +8,9 @@ function PostDetail() {
   const postIdNumber = postId ? Number(postId) : undefined;
   const isValidPostId = Number.isInteger(postIdNumber) && Number(postIdNumber) > 0;
   const { data: post, isLoading, isError } = useGetPost(isValidPostId ? postIdNumber : undefined);
+
+  const featured = getTodayGenre();
+  const featuredTheme = GENRE_THEME[featured];
 
   const renderContent = () => {
     if (!isValidPostId) {
@@ -21,9 +25,9 @@ function PostDetail() {
     if (isLoading) {
       return (
         <div className="grid gap-4">
-          <div className="aspect-video w-full animate-pulse rounded-lg bg-zinc-100" />
-          <div className="h-6 w-2/3 animate-pulse rounded bg-zinc-100" />
-          <div className="h-40 animate-pulse rounded-lg bg-zinc-100" />
+          <div className={`aspect-video w-full animate-pulse rounded-lg ${featuredTheme.placeholder}`} />
+          <div className={`h-6 w-2/3 animate-pulse rounded ${featuredTheme.placeholder}`} />
+          <div className={`h-40 animate-pulse rounded-lg ${featuredTheme.placeholder}`} />
         </div>
       );
     }
@@ -46,7 +50,7 @@ function PostDetail() {
 
     return (
       <article className="grid gap-5">
-        <div className="aspect-video w-full overflow-hidden rounded-lg bg-zinc-100">
+        <div className={`aspect-video w-full overflow-hidden rounded-lg ${featuredTheme.placeholder}`}>
           <img src={post.thumbnailUrl} alt={post.title} className="h-full w-full object-cover" />
         </div>
 
@@ -56,29 +60,33 @@ function PostDetail() {
           >
             {GENRE_THEME[post.genre].label}
           </span>
-          <h1 className="mt-3 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">{post.title}</h1>
-          <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500">
+          <h1 className={`mt-3 text-2xl font-bold tracking-normal sm:text-3xl ${featuredTheme.heading}`}>
+            {post.title}
+          </h1>
+          <div className={`mt-2 flex items-center gap-3 text-xs ${featuredTheme.muted}`}>
             <span>{new Date(post.publishedAt).toLocaleDateString('ko-KR')}</span>
             <span>조회 {post.viewCount}</span>
           </div>
         </div>
 
-        <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-800">{post.content}</p>
+        <p className={`whitespace-pre-wrap text-sm leading-7 ${featuredTheme.body}`}>{post.content}</p>
       </article>
     );
   };
 
   return (
-    <main className="min-h-screen bg-stone-50 px-4 py-6 text-zinc-900 sm:px-8 sm:py-8">
+    <main className={`min-h-screen px-4 py-6 sm:px-8 sm:py-8 ${featuredTheme.pageBg}`}>
       <div className="mx-auto grid w-full max-w-2xl gap-6">
         <Link
-          className={`inline-block py-2 text-sm font-semibold transition hover:opacity-80 ${post ? GENRE_THEME[post.genre].accent : 'text-zinc-700'}`}
+          className={`inline-block py-2 text-sm font-semibold transition hover:opacity-80 ${featuredTheme.accent}`}
           to="/"
         >
           목록으로 돌아가기
         </Link>
 
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">{renderContent()}</section>
+        <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
+          {renderContent()}
+        </section>
       </div>
     </main>
   );
