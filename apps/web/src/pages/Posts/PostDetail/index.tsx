@@ -1,10 +1,6 @@
 import { Link, useParams } from 'react-router';
 import useGetPost from '@/hooks/useGetPost';
-
-const genreLabels = {
-  horror: '공포',
-  romance: '로맨스',
-} as const;
+import { GENRE_THEME } from '@/libs/utils/genreTheme';
 
 function PostDetail() {
   const { postId } = useParams<{ postId: string }>();
@@ -55,8 +51,10 @@ function PostDetail() {
         </div>
 
         <div>
-          <span className="inline-flex w-fit rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
-            {genreLabels[post.genre]}
+          <span
+            className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${GENRE_THEME[post.genre].badge}`}
+          >
+            {GENRE_THEME[post.genre].label}
           </span>
           <h1 className="mt-3 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">{post.title}</h1>
           <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500">
@@ -71,9 +69,12 @@ function PostDetail() {
   };
 
   return (
-    <main className="min-h-screen bg-stone-50 px-5 py-8 text-zinc-900 sm:px-8">
+    <main className="min-h-screen bg-stone-50 px-4 py-6 text-zinc-900 sm:px-8 sm:py-8">
       <div className="mx-auto grid w-full max-w-2xl gap-6">
-        <Link className="text-sm font-semibold text-emerald-700 transition hover:text-emerald-900" to="/">
+        <Link
+          className={`inline-block py-2 text-sm font-semibold transition hover:opacity-80 ${post ? GENRE_THEME[post.genre].accent : 'text-zinc-700'}`}
+          to="/"
+        >
           목록으로 돌아가기
         </Link>
 

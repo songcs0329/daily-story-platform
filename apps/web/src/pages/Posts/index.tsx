@@ -1,24 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
+import { getTodayGenre } from 'shared';
 import useGetPosts from '@/hooks/useGetPosts';
-
-const genreLabels = {
-  horror: '공포',
-  romance: '로맨스',
-} as const;
-
-const LIMIT = 9;
+import { GENRE_THEME } from '@/libs/utils/genreTheme';
 
 function Posts() {
-  const [page, setPage] = useState(1);
-  const { data: paginatedPosts, isLoading, isError } = useGetPosts({ page, limit: LIMIT });
-  const posts = paginatedPosts?.data;
-  const totalPages = paginatedPosts ? Math.max(1, Math.ceil(paginatedPosts.total / paginatedPosts.limit)) : 1;
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPosts();
+  const posts = data?.pages.flatMap((page) => page.data);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const featured = getTodayGenre();
+  const featuredTheme = GENRE_THEME[featured];
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    });
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="h-64 animate-pulse rounded-lg bg-zinc-100" />
           ))}
@@ -43,12 +57,12 @@ function Posts() {
     }
 
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {posts.map((post) => (
           <Link
             key={post.id}
             to={`/posts/${post.id}`}
-            className="group grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:border-emerald-500 hover:shadow-md"
+            className={`group grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:shadow-md ${GENRE_THEME[post.genre].cardHover}`}
           >
             <div className="aspect-video w-full overflow-hidden bg-zinc-100">
               <img
@@ -59,8 +73,10 @@ function Posts() {
               />
             </div>
             <div className="grid gap-2 p-5">
-              <span className="inline-flex w-fit rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
-                {genreLabels[post.genre]}
+              <span
+                className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${GENRE_THEME[post.genre].badge}`}
+              >
+                {GENRE_THEME[post.genre].label}
               </span>
               <h2 className="line-clamp-2 text-lg font-bold tracking-normal text-zinc-950">{post.title}</h2>
               <div className="flex items-center justify-between text-xs text-zinc-500">
@@ -75,39 +91,27 @@ function Posts() {
   };
 
   return (
-    <main className="min-h-screen bg-stone-50 px-5 py-8 text-zinc-900 sm:px-8">
+    <main className="min-h-screen bg-stone-50 px-4 py-6 text-zinc-900 sm:px-8 sm:py-8">
       <div className="mx-auto grid w-full max-w-5xl gap-8">
         <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-semibold text-emerald-700">Daily Story</p>
-          <h1 className="mt-3 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">오늘의 이야기</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">매일 새로 쓰인 단편 소설을 만나보세요.</p>
+          <p className={`text-sm font-semibold ${featuredTheme.accent}`}>
+            매일 한 편 · 이번 시즌은 {featuredTheme.label}
+          </p>
+          <h1 className="mt-3 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">
+            하루 한 편, 오늘의 이야기
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
+            {featured === 'horror'
+              ? '여름밤, 매일 새로 쓰인 공포 단편으로 서늘하게.'
+              : '매일 새로 쓰인 로맨스 단편으로 설레는 하루를.'}
+          </p>
         </section>
 
         {renderContent()}
 
-        {posts && posts.length > 0 && (
-          <div className="flex items-center justify-center gap-4">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage((current) => current - 1)}
-              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              이전
-            </button>
-            <span className="text-sm text-zinc-500">
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages}
-              onClick={() => setPage((current) => current + 1)}
-              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              다음
-            </button>
-          </div>
-        )}
+        <div ref={sentinelRef} />
+
+        {isFetchingNextPage && <div className="h-24 animate-pulse rounded-lg bg-zinc-100" />}
       </div>
     </main>
   );
