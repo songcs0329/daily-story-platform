@@ -11,7 +11,8 @@ export class GenerationController {
 
   @Post()
   run(@Headers('x-generation-secret') secret: string) {
-    if (secret !== this.config.get<string>('GENERATION_SECRET')) {
+    const expectedSecret = this.config.get<string>('GENERATION_SECRET');
+    if (!expectedSecret || secret !== expectedSecret) {
       throw new UnauthorizedException();
     }
     return this.generationService.generateTodayPost();
