@@ -29,8 +29,8 @@ pnpm workspaces 기반 모노레포 (`pnpm-workspace.yaml`: `apps/*`, `packages/
 ### 외부 연동
 
 - DB/Storage: Supabase (Postgres + Storage). 스키마는 `supabase/schema.sql`에서 관리 — `apps/api/src/posts/entities/*.entity.ts`와 1:1로 맞춰야 하며, 엔티티를 바꾸면 이 파일도 같이 갱신한다.
-- 텍스트/이미지 생성: Gemini API (`apps/api/src/generation/`). 텍스트는 `gemini-3.6-flash`, 썸네일은 `gemini-2.5-flash-image` — 이미지 생성 모델은 무료 티어 쿼터가 0이라 Google Cloud 프로젝트에 결제 연결 필수. `POST /generation`(헤더 `x-generation-secret`, `GENERATION_SECRET` 환경변수와 일치해야 함)으로 트리거 — 아직 크론에는 안 붙어 있음
-- 크론 트리거: GitHub Actions scheduled workflow (예정) — `POST /generation` 매일 1회 호출
+- 텍스트/이미지 생성: Gemini API. 실제 운영 크론은 `scripts/apps-script/daily-story-generator.gs`(Google Apps Script)가 담당 — Gemini 호출부터 Supabase Storage 업로드, `posts` insert까지 전부 직접 처리하므로 apps/api가 떠 있을 필요 없음. 텍스트/이미지 모두 여러 모델 순서대로 시도하는 폴백 체인 사용 (모델별 무료 쿼터/장애에 대비). `apps/api/src/generation/`(`POST /generation`, 헤더 `x-generation-secret`)은 수동/로컬 테스트 전용으로 남겨둠 — 실제 스케줄에는 안 붙음.
+- 크론 트리거: Google Apps Script 자체 시간 기반 트리거 (스크립트는 `scripts/apps-script/`, 프로젝트 생성·트리거 등록은 script.google.com에서 수동 설정)
 - 배포: Render(`apps/api`), Vercel(`apps/web`) (예정)
 
 ## 명령어
