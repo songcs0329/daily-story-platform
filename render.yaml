@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: daily-story-platform-api
+    runtime: node
+    plan: free
+    buildCommand: pnpm install && pnpm --filter api build
+    startCommand: pnpm --filter api start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GENERATION_SECRET
+        sync: false

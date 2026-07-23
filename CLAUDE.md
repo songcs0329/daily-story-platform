@@ -32,7 +32,7 @@ pnpm workspaces 기반 모노레포 (`pnpm-workspace.yaml`: `apps/*`, `packages/
 - 텍스트/이미지 생성: Gemini API. 실제 운영 크론은 `scripts/apps-script/daily-story-generator.gs`(Google Apps Script)가 담당 — Gemini 호출부터 Supabase Storage 업로드, `posts` insert까지 전부 직접 처리하므로 apps/api가 떠 있을 필요 없음. 텍스트/이미지 모두 여러 모델 순서대로 시도하는 폴백 체인 사용 (모델별 무료 쿼터/장애에 대비). 실제 계정으로 end-to-end 검증 완료(생성→업로드→DB insert). `apps/api/src/generation/`(`POST /generation`, 헤더 `x-generation-secret`)은 수동/로컬 테스트 전용으로 남겨둠 — 실제 스케줄에는 안 붙음.
 - Supabase 키: 이 프로젝트는 2025-11-01 이후 생성돼 레거시 JWT `service_role` 키를 씀 (새 `sb_secret_` 키는 Apps Script의 `UrlFetchApp`을 브라우저로 오인해 401 차단함 — `SUPABASE_USER_AGENT` 헤더로 우회 시도했지만 실패, 레거시 키로 해결). 레거시 키는 2026년 말 폐기 예정이라 그 전에 재대응 필요.
 - 크론 트리거: Google Apps Script 자체 시간 기반 트리거 (스크립트는 `scripts/apps-script/`, 프로젝트 생성·트리거 등록은 script.google.com에서 수동 설정). `generateDailyPost`가 트리거 대상, `testGenerateDailyPost`는 오늘자 게시물 존재 여부와 무관하게 강제 실행하는 수동 테스트 전용 함수.
-- 배포: Render(`apps/api`), Vercel(`apps/web`) (예정)
+- 배포: Render(`apps/api`, 루트 `render.yaml` 블루프린트로 설정 — 모노레포라 빌드는 리포 루트에서 `pnpm install && pnpm --filter api build`), Vercel(`apps/web`, 프로젝트 Root Directory를 `apps/web`로 설정). `apps/api`는 `app.enableCors()`로 모든 origin 허용 — 인증 없는 공개 조회 API라 오리진 제한 불필요.
 
 ## 명령어
 
