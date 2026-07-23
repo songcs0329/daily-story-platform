@@ -9,7 +9,12 @@
  * ── 설정 (Script Properties, 프로젝트 설정 → Script Properties) ──────────
  *   GEMINI_API_KEY             aistudio.google.com/apikey
  *   SUPABASE_URL               예: https://xxxx.supabase.co
- *   SUPABASE_SERVICE_ROLE_KEY  Supabase Settings → API Keys → service_role
+ *   SUPABASE_SERVICE_ROLE_KEY  Supabase Settings → API Keys → 시크릿 키(sb_secret_...)
+ *                              ※ 2025-11-01 이후 생성된 프로젝트는 레거시 JWT service_role
+ *                                키가 아예 없음 — 새 sb_secret_ 키를 쓴다. 이 키는 요청이
+ *                                "브라우저처럼" 보이면 차단하는데(User-Agent로 판별),
+ *                                UrlFetchApp 기본 UA가 여기 걸려서 SUPABASE_USER_AGENT로
+ *                                우회한다 (아래 상수).
  *
  * ── 사용법 ────────────────────────────────────────────────
  *   1) Script Properties에 위 3개 값 저장
@@ -46,6 +51,12 @@ function getSupabaseUrl_() {
 function getSupabaseServiceKey_() {
   return PropertiesService.getScriptProperties().getProperty('SUPABASE_SERVICE_ROLE_KEY') || '';
 }
+
+// Supabase의 새 sb_secret_ 키는 User-Agent로 "브라우저처럼 보이는" 요청을 차단한다.
+// UrlFetchApp의 기본 User-Agent가 여기 걸리므로, 시크릿 키를 쓰는 모든 Supabase 호출에
+// 이 헤더를 명시적으로 실어 보낸다 (레거시 service_role JWT 키는 이 제한이 없지만,
+// 2025-11-01 이후 생성된 프로젝트는 레거시 키 자체가 없음).
+var SUPABASE_USER_AGENT = 'daily-story-generator-apps-script/1.0';
 
 // 핵심: 막히면 다음 모델로 즉시 전환. 전체 한 바퀴 다 막히면 잠깐 쉬고 한 번 더.
 function geminiCall_(prompt, jsonMode) {
@@ -241,7 +252,7 @@ function hasTodayPost_() {
     encodeURIComponent(tomorrowStart.toISOString());
   var res = UrlFetchApp.fetch(url, {
     method: 'get',
-    headers: { apikey: key, Authorization: 'Bearer ' + key },
+    headers: { apikey: key, Authorization: 'Bearer ' + key, 'User-Agent': SUPABASE_USER_AGENT },
     muteHttpExceptions: true,
   });
   if (res.getResponseCode() !== 200) {
@@ -259,7 +270,7 @@ function uploadThumbnailToSupabase_(base64Png) {
   var bytes = Utilities.base64Decode(base64Png);
   var res = UrlFetchApp.fetch(supabaseUrl + '/storage/v1/object/thumbnails/' + path, {
     method: 'post',
-    headers: { Authorization: 'Bearer ' + key, apikey: key },
+    headers: { Authorization: 'Bearer ' + key, apikey: key, 'User-Agent': SUPABASE_USER_AGENT },
     contentType: 'image/png',
     payload: bytes,
     muteHttpExceptions: true,
@@ -276,7 +287,12 @@ function insertPostToSupabase_(post) {
   var key = getSupabaseServiceKey_();
   var res = UrlFetchApp.fetch(supabaseUrl + '/rest/v1/posts', {
     method: 'post',
-    headers: { apikey: key, Authorization: 'Bearer ' + key, Prefer: 'return=minimal' },
+    headers: {
+      apikey: key,
+      Authorization: 'Bearer ' + key,
+      Prefer: 'return=minimal',
+      'User-Agent': SUPABASE_USER_AGENT,
+    },
     contentType: 'application/json',
     payload: JSON.stringify(post),
     muteHttpExceptions: true,
