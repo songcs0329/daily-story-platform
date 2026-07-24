@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router';
+import CommentSection from './CommentSection';
 import useGetPost from '@/hooks/useGetPost';
 import { getGenreTheme } from '@/libs/utils/genreTheme';
 
@@ -85,7 +86,7 @@ function PostDetail() {
       <div className="mx-auto grid w-full max-w-2xl gap-6">
         <Link
           className={`inline-block py-2 text-sm font-semibold transition hover:opacity-80 ${featuredTheme.accent}`}
-          to="/"
+          to="/posts"
         >
           목록으로 돌아가기
         </Link>
@@ -93,6 +94,8 @@ function PostDetail() {
         <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
           {renderContent()}
         </section>
+
+        {isValidPostId && post && <CommentSection postId={post.id} theme={featuredTheme} />}
       </div>
     </main>
   );

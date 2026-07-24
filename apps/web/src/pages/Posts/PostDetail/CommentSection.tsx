@@ -1,0 +1,86 @@
+import { useState } from 'react';
+import { Link } from 'react-router';
+import CommentItem from './CommentItem';
+import type { GenreTheme } from '@/libs/utils/genreTheme';
+import useCreateComment from '@/hooks/useCreateComment';
+import useDeleteComment from '@/hooks/useDeleteComment';
+import useGetComments from '@/hooks/useGetComments';
+import useAuthStore from '@/stores/useAuthStore';
+
+interface CommentSectionProps {
+  postId: number;
+  theme: GenreTheme;
+}
+
+function CommentSection({ postId, theme }: CommentSectionProps) {
+  const { data: comments, isLoading } = useGetComments(postId);
+  const user = useAuthStore((state) => state.user);
+  const createComment = useCreateComment(postId);
+  const deleteComment = useDeleteComment(postId);
+  const [content, setContent] = useState('');
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = content.trim();
+    if (!trimmed) return;
+
+    createComment.mutate(trimmed, {
+      onSuccess: () => setContent(''),
+    });
+  };
+
+  return (
+    <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${theme.surface}`}>
+      <h2 className={`text-lg font-bold tracking-normal ${theme.heading}`}>댓글 {comments?.length ?? 0}개</h2>
+
+      {isLoading ? (
+        <div className={`mt-4 h-20 animate-pulse rounded-lg ${theme.placeholder}`} />
+      ) : (
+        <ul className="mt-4">
+          {comments?.length ? (
+            comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                theme={theme}
+                canDelete={user?.id === comment.author.id}
+                isDeleting={deleteComment.isPending}
+                onDelete={() => deleteComment.mutate(comment.id)}
+              />
+            ))
+          ) : (
+            <li className={`text-sm ${theme.muted}`}>아직 댓글이 없습니다. 첫 댓글을 남겨보세요.</li>
+          )}
+        </ul>
+      )}
+
+      {user ? (
+        <form onSubmit={handleSubmit} className="mt-5 grid gap-2">
+          <textarea
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            placeholder="댓글을 남겨보세요"
+            rows={3}
+            className={`rounded-md border p-3 text-sm leading-6 outline-none ${theme.surface} ${theme.body}`}
+          />
+          <button
+            type="submit"
+            disabled={createComment.isPending || !content.trim()}
+            className={`w-fit rounded-md px-4 py-2 text-sm font-semibold transition hover:opacity-80 disabled:opacity-50 ${theme.badge}`}
+          >
+            댓글 작성
+          </button>
+        </form>
+      ) : (
+        <p className={`mt-5 text-sm ${theme.muted}`}>
+          <Link to="/" className={`font-semibold ${theme.accent}`}>
+            로그인
+          </Link>{' '}
+          후 댓글을 작성할 수 있어요.
+        </p>
+      )}
+    </section>
+  );
+}
+
+export default CommentSection;

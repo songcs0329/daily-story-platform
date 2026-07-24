@@ -1,5 +1,6 @@
 -- Supabase Dashboard → SQL Editor에 붙여넣고 실행.
--- apps/api/src/posts/entities/posts.entity.ts, apps/api/src/genres/entities/genres.entity.ts 와
+-- apps/api/src/posts/entities/posts.entity.ts, apps/api/src/genres/entities/genres.entity.ts,
+-- apps/api/src/users/entities/users.entity.ts, apps/api/src/comments/entities/comments.entity.ts 와
 -- 1:1로 맞춘 스키마 (컬럼 추가/변경 시 같이 갱신할 것).
 --
 -- RLS는 설정하지 않는다: apps/api가 Supabase의 PostgREST(anon/authenticated 롤)가 아니라
@@ -27,6 +28,21 @@ create table posts (
   genre text not null references genres(slug),
   view_count integer not null default 0,
   published_at timestamptz not null
+);
+
+create table users (
+  id integer generated always as identity primary key,
+  kakao_id bigint not null unique,
+  nickname text not null,
+  profile_image_url text
+);
+
+create table comments (
+  id integer generated always as identity primary key,
+  post_id integer not null references posts(id),
+  user_id integer not null references users(id),
+  content text not null,
+  created_at timestamptz not null default now()
 );
 
 -- 기존 DB에 이미 posts 테이블이 있는 경우(enum 기반 마이그레이션, 2026-07-24 적용 완료):

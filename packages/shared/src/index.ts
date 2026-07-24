@@ -14,3 +14,16 @@ export interface Paginated<T> {
   page: number;
   limit: number;
 }
+
+export interface User {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+}
+
+export interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: User;
+}

@@ -1,4 +1,4 @@
-interface GenreTheme {
+export interface GenreTheme {
   label: string;
   tagline: string;
   badge: string;

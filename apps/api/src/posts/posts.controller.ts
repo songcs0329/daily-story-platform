@@ -1,5 +1,8 @@
-import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
+import { OptionalAuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { PostsService } from './posts.service';
+import type { AuthedUser } from '../auth/auth.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -14,7 +17,8 @@ export class PostsController {
   }
 
   @Get(':id')
-  getPost(@Param('id', ParseIntPipe) id: number) {
-    return this.postsService.getPost(id);
+  @UseGuards(OptionalAuthGuard)
+  getPost(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthedUser | undefined) {
+    return this.postsService.getPost(id, !!user);
   }
 }

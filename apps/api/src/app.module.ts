@@ -5,10 +5,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { CommentsModule } from './comments/comments.module';
+import { CommentsEntity } from './comments/entities/comments.entity';
 import { GenerationModule } from './generation/generation.module';
 import { GenresEntity } from './genres/entities/genres.entity';
 import { PostsEntity } from './posts/entities/posts.entity';
 import { PostsModule } from './posts/posts.module';
+import { UsersModule } from './users/users.module';
+import { UsersEntity } from './users/entities/users.entity';
 
 @Module({
   imports: [
@@ -19,7 +24,7 @@ import { PostsModule } from './posts/posts.module';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
-        entities: [PostsEntity, GenresEntity],
+        entities: [PostsEntity, GenresEntity, UsersEntity, CommentsEntity],
         // ponytail: synchronize is fine for solo MVP dev, switch to migrations before this has real data
         synchronize: config.get('NODE_ENV') !== 'production',
         ssl: { ca: readFileSync(join(__dirname, '..', 'certs', 'supabase-ca.crt')).toString() },
@@ -27,6 +32,9 @@ import { PostsModule } from './posts/posts.module';
     }),
     PostsModule,
     GenerationModule,
+    UsersModule,
+    AuthModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

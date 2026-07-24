@@ -23,14 +23,16 @@ export class PostsService {
     return { data, total, page, limit: take };
   }
 
-  async getPost(id: number): Promise<PostsEntity> {
+  async getPost(id: number, countView: boolean): Promise<PostsEntity> {
     const post = await this.postRepository.findOneBy({ id });
     if (!post) {
       throw new NotFoundException(`Post ${id} not found`);
     }
 
-    await this.postRepository.increment({ id }, 'viewCount', 1);
-    post.viewCount += 1;
+    if (countView) {
+      await this.postRepository.increment({ id }, 'viewCount', 1);
+      post.viewCount += 1;
+    }
     return post;
   }
 }
