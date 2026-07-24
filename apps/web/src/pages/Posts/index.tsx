@@ -103,20 +103,31 @@ function Posts() {
     <main className={`min-h-screen px-4 py-6 sm:px-8 sm:py-8 ${featuredTheme.pageBg}`}>
       <div className="mx-auto grid w-full max-w-5xl gap-8">
         <Card className={`gap-0 rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
-          {user && (
-            <div className={`mb-3 flex items-center justify-end gap-3 text-xs ${featuredTheme.muted}`}>
-              <span>{user.nickname}님</span>
+          <div className={`mb-3 flex items-center justify-end gap-3 text-xs ${featuredTheme.muted}`}>
+            {user ? (
+              <>
+                <span>{user.nickname}님</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="h-auto p-0 font-semibold hover:bg-transparent hover:opacity-80"
+                >
+                  로그아웃
+                </Button>
+              </>
+            ) : (
               <Button
-                type="button"
+                asChild
                 variant="ghost"
                 size="sm"
-                onClick={handleLogout}
                 className="h-auto p-0 font-semibold hover:bg-transparent hover:opacity-80"
               >
-                로그아웃
+                <Link to="/">로그인하기</Link>
               </Button>
-            </div>
-          )}
+            )}
+          </div>
           <p className={`text-sm font-semibold ${featuredTheme.accent}`}>
             매일 한 편 · 이번 시즌은 {featuredTheme.label}
           </p>
