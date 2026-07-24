@@ -38,6 +38,14 @@ export default tseslint.config(
     },
   },
 
+  // apps/web/src/components/ui — shadcn-generated, co-exports cva variants alongside components
+  {
+    files: ['apps/web/src/components/ui/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+
   // apps/api — NestJS, type-checked
   {
     files: ['apps/api/**/*.ts'],

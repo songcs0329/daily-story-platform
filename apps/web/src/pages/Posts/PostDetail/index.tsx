@@ -1,5 +1,9 @@
 import { Link, useParams } from 'react-router';
 import CommentSection from './CommentSection';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import useGetPost from '@/hooks/useGetPost';
 import { getGenreTheme } from '@/libs/utils/genreTheme';
 
@@ -24,9 +28,9 @@ function PostDetail() {
     if (isLoading) {
       return (
         <div className="grid gap-4">
-          <div className={`aspect-video w-full animate-pulse rounded-lg ${featuredTheme.placeholder}`} />
-          <div className={`h-6 w-2/3 animate-pulse rounded ${featuredTheme.placeholder}`} />
-          <div className={`h-40 animate-pulse rounded-lg ${featuredTheme.placeholder}`} />
+          <Skeleton className={`aspect-video w-full rounded-lg ${featuredTheme.placeholder}`} />
+          <Skeleton className={`h-6 w-2/3 rounded ${featuredTheme.placeholder}`} />
+          <Skeleton className={`h-40 rounded-lg ${featuredTheme.placeholder}`} />
         </div>
       );
     }
@@ -54,9 +58,7 @@ function PostDetail() {
         </div>
 
         <div>
-          <span className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${featuredTheme.badge}`}>
-            {featuredTheme.label}
-          </span>
+          <Badge className={featuredTheme.badge}>{featuredTheme.label}</Badge>
           <h1 className={`mt-3 text-2xl font-bold tracking-normal sm:text-3xl ${featuredTheme.heading}`}>
             {post.title}
           </h1>
@@ -84,16 +86,18 @@ function PostDetail() {
   return (
     <main className={`min-h-screen px-4 py-6 sm:px-8 sm:py-8 ${featuredTheme.pageBg}`}>
       <div className="mx-auto grid w-full max-w-2xl gap-6">
-        <Link
-          className={`inline-block py-2 text-sm font-semibold transition hover:opacity-80 ${featuredTheme.accent}`}
-          to="/posts"
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className={`h-auto w-fit p-0 py-2 font-semibold hover:bg-transparent hover:opacity-80 ${featuredTheme.accent}`}
         >
-          목록으로 돌아가기
-        </Link>
+          <Link to="/posts">목록으로 돌아가기</Link>
+        </Button>
 
-        <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
+        <Card className={`gap-0 rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
           {renderContent()}
-        </section>
+        </Card>
 
         {isValidPostId && post && <CommentSection postId={post.id} theme={featuredTheme} />}
       </div>

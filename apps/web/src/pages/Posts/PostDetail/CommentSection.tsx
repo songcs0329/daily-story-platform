@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import CommentItem from './CommentItem';
 import type { GenreTheme } from '@/libs/utils/genreTheme';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import useCreateComment from '@/hooks/useCreateComment';
 import useDeleteComment from '@/hooks/useDeleteComment';
 import useGetComments from '@/hooks/useGetComments';
@@ -30,11 +34,11 @@ function CommentSection({ postId, theme }: CommentSectionProps) {
   };
 
   return (
-    <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${theme.surface}`}>
+    <Card className={`gap-0 rounded-lg border p-6 shadow-sm sm:p-8 ${theme.surface}`}>
       <h2 className={`text-lg font-bold tracking-normal ${theme.heading}`}>댓글 {comments?.length ?? 0}개</h2>
 
       {isLoading ? (
-        <div className={`mt-4 h-20 animate-pulse rounded-lg ${theme.placeholder}`} />
+        <Skeleton className={`mt-4 h-20 rounded-lg ${theme.placeholder}`} />
       ) : (
         <ul className="mt-4">
           {comments?.length ? (
@@ -56,20 +60,20 @@ function CommentSection({ postId, theme }: CommentSectionProps) {
 
       {user ? (
         <form onSubmit={handleSubmit} className="mt-5 grid gap-2">
-          <textarea
+          <Textarea
             value={content}
             onChange={(event) => setContent(event.target.value)}
             placeholder="댓글을 남겨보세요"
             rows={3}
-            className={`rounded-md border p-3 text-sm leading-6 outline-none ${theme.surface} ${theme.body}`}
+            className={`text-sm leading-6 ${theme.surface} ${theme.body}`}
           />
-          <button
+          <Button
             type="submit"
             disabled={createComment.isPending || !content.trim()}
-            className={`w-fit rounded-md px-4 py-2 text-sm font-semibold transition hover:opacity-80 disabled:opacity-50 ${theme.badge}`}
+            className={`h-auto w-fit px-4 py-2 text-sm font-semibold ${theme.badge}`}
           >
             댓글 작성
-          </button>
+          </Button>
         </form>
       ) : (
         <p className={`mt-5 text-sm ${theme.muted}`}>
@@ -79,7 +83,7 @@ function CommentSection({ postId, theme }: CommentSectionProps) {
           후 댓글을 작성할 수 있어요.
         </p>
       )}
-    </section>
+    </Card>
   );
 }
 

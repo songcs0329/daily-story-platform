@@ -1,5 +1,6 @@
 import type { Comment } from 'shared';
 import type { GenreTheme } from '@/libs/utils/genreTheme';
+import { Button } from '@/components/ui/button';
 
 interface CommentItemProps {
   comment: Comment;
@@ -17,14 +18,16 @@ function CommentItem({ comment, theme, canDelete, onDelete, isDeleting }: Commen
         <div className={`flex items-center gap-3 text-xs ${theme.muted}`}>
           <span>{new Date(comment.createdAt).toLocaleDateString('ko-KR')}</span>
           {canDelete && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={onDelete}
               disabled={isDeleting}
-              className="font-semibold transition hover:opacity-80 disabled:opacity-50"
+              className="h-auto p-0 font-semibold hover:bg-transparent hover:opacity-80"
             >
               삭제
-            </button>
+            </Button>
           )}
         </div>
       </div>
