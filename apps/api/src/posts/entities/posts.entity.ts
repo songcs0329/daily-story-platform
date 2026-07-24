@@ -1,6 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { GENRES } from 'shared';
-import type { Genre, Post } from 'shared';
+import type { Post } from 'shared';
 
 @Entity('posts')
 export class PostsEntity implements Post {
@@ -16,8 +15,8 @@ export class PostsEntity implements Post {
   @Column({ name: 'thumbnail_url' })
   thumbnailUrl: string;
 
-  @Column({ type: 'enum', enum: GENRES })
-  genre: Genre;
+  @Column({ type: 'text' })
+  genre: string;
 
   @Column({ name: 'view_count', default: 0 })
   viewCount: number;

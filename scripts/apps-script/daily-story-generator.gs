@@ -223,19 +223,23 @@ function debugImageModels_() {
   });
 }
 
-// ── 장르 분기 (apps/api/src/generation/constants/genre.constant.ts 와 동일) ──
-// ponytail: 하드코딩 월별 분기, 장르 3개 이상 늘어나기 전까지 테이블화하지 않음
-function getTodayGenre_() {
-  var month = new Date().getMonth() + 1;
-  return month >= 6 && month <= 9 ? 'horror' : 'romance';
+// ── 장르 (Supabase genres 테이블에서 관리 — supabase/schema.sql 참고) ──
+// 매일 genres 테이블 전체를 가져와 랜덤으로 하나 뽑는다. 장르 추가/프롬프트 수정은
+// DB row 추가/수정만으로 가능하고 이 스크립트를 다시 배포할 필요 없음.
+function fetchGenres_() {
+  var supabaseUrl = getSupabaseUrl_();
+  var key = getSupabaseServiceKey_();
+  var res = UrlFetchApp.fetch(supabaseUrl + '/rest/v1/genres?select=slug,label,story_prompt', {
+    method: 'get',
+    headers: { apikey: key, Authorization: 'Bearer ' + key, 'User-Agent': SUPABASE_USER_AGENT },
+    muteHttpExceptions: true,
+  });
+  if (res.getResponseCode() !== 200) {
+    Logger.log('장르 목록 조회 실패(' + res.getResponseCode() + '): ' + res.getContentText());
+    return null;
+  }
+  return JSON.parse(res.getContentText());
 }
-
-var GENRE_LABELS = { horror: '공포', romance: '로맨스' };
-
-var GENRE_STORY_PROMPTS = {
-  horror: '한국어로 짧은 공포 단편소설을 써줘. 소름 끼치고 긴장감 있는 분위기로, 1200~2000자 분량.',
-  romance: '한국어로 짧은 로맨스 단편소설을 써줘. 따뜻하고 설레는 분위기로, 1200~2000자 분량.',
-};
 
 // 오늘자 게시물이 이미 있으면 true — 트리거 중복 실행/수동 재실행 대비
 function hasTodayPost_() {
@@ -319,9 +323,14 @@ function generateDailyPost_(force) {
     return;
   }
 
-  var genre = getTodayGenre_();
+  var genres = fetchGenres_();
+  if (!genres || genres.length === 0) {
+    Logger.log('장르 목록 조회 실패, 중단합니다.');
+    return;
+  }
+  var genreRow = genres[Math.floor(Math.random() * genres.length)];
   var storyPrompt =
-    GENRE_STORY_PROMPTS[genre] +
+    genreRow.story_prompt +
     ' 다른 설명 없이 반드시 다음 JSON 형식으로만 응답해: {"title": "제목", "content": "본문"}';
   var story = geminiJson_(storyPrompt);
   if (!story || !story.title || !story.content) {
@@ -333,7 +342,7 @@ function generateDailyPost_(force) {
     '"' +
     story.title +
     '"라는 제목의 ' +
-    GENRE_LABELS[genre] +
+    genreRow.label +
     ' 단편소설 표지용 썸네일 이미지를 그려줘. 텍스트나 글자는 넣지 말고, 분위기 있는 일러스트로.';
   var imageBase64 = geminiImageCall_(thumbnailPrompt);
   if (!imageBase64) {
@@ -347,7 +356,7 @@ function generateDailyPost_(force) {
     title: story.title,
     content: story.content,
     thumbnail_url: thumbnailUrl,
-    genre: genre,
+    genre: genreRow.slug,
     view_count: 0,
     published_at: new Date().toISOString(),
   });

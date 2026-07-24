@@ -1,16 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
-import { getTodayGenre } from 'shared';
 import useGetPosts from '@/hooks/useGetPosts';
-import { GENRE_THEME } from '@/libs/utils/genreTheme';
+import { getGenreTheme } from '@/libs/utils/genreTheme';
 
 function Posts() {
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPosts();
   const posts = data?.pages.flatMap((page) => page.data);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const featured = getTodayGenre();
-  const featuredTheme = GENRE_THEME[featured];
+  const featuredTheme = getGenreTheme(posts?.[0]?.genre);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -62,7 +60,7 @@ function Posts() {
           <Link
             key={post.id}
             to={`/posts/${post.id}`}
-            className={`group grid overflow-hidden rounded-lg border shadow-sm transition hover:shadow-md ${featuredTheme.surface} ${GENRE_THEME[post.genre].cardHover}`}
+            className={`group grid overflow-hidden rounded-lg border shadow-sm transition hover:shadow-md ${featuredTheme.surface} ${getGenreTheme(post.genre).cardHover}`}
           >
             <div className={`aspect-video w-full overflow-hidden ${featuredTheme.placeholder}`}>
               <img
@@ -74,9 +72,9 @@ function Posts() {
             </div>
             <div className="grid gap-2 p-5">
               <span
-                className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${GENRE_THEME[post.genre].badge}`}
+                className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${getGenreTheme(post.genre).badge}`}
               >
-                {GENRE_THEME[post.genre].label}
+                {getGenreTheme(post.genre).label}
               </span>
               <h2 className={`line-clamp-2 text-lg font-bold tracking-normal ${featuredTheme.heading}`}>
                 {post.title}
@@ -102,11 +100,7 @@ function Posts() {
           <h1 className={`mt-3 text-2xl font-bold tracking-normal sm:text-3xl ${featuredTheme.heading}`}>
             하루 한 편, 오늘의 이야기
           </h1>
-          <p className={`mt-3 max-w-2xl text-sm leading-6 ${featuredTheme.muted}`}>
-            {featured === 'horror'
-              ? '여름밤, 매일 새로 쓰인 공포 단편으로 서늘하게.'
-              : '매일 새로 쓰인 로맨스 단편으로 설레는 하루를.'}
-          </p>
+          <p className={`mt-3 max-w-2xl text-sm leading-6 ${featuredTheme.muted}`}>{featuredTheme.tagline}</p>
         </section>
 
         {renderContent()}

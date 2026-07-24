@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GenerationModule } from './generation/generation.module';
+import { GenresEntity } from './genres/entities/genres.entity';
 import { PostsEntity } from './posts/entities/posts.entity';
 import { PostsModule } from './posts/posts.module';
 
@@ -18,7 +19,7 @@ import { PostsModule } from './posts/posts.module';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
-        entities: [PostsEntity],
+        entities: [PostsEntity, GenresEntity],
         // ponytail: synchronize is fine for solo MVP dev, switch to migrations before this has real data
         synchronize: config.get('NODE_ENV') !== 'production',
         ssl: { ca: readFileSync(join(__dirname, '..', 'certs', 'supabase-ca.crt')).toString() },

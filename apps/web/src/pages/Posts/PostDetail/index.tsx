@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router';
-import { getTodayGenre } from 'shared';
 import useGetPost from '@/hooks/useGetPost';
-import { GENRE_THEME } from '@/libs/utils/genreTheme';
+import { getGenreTheme } from '@/libs/utils/genreTheme';
 
 function PostDetail() {
   const { postId } = useParams<{ postId: string }>();
@@ -9,8 +8,7 @@ function PostDetail() {
   const isValidPostId = Number.isInteger(postIdNumber) && Number(postIdNumber) > 0;
   const { data: post, isLoading, isError } = useGetPost(isValidPostId ? postIdNumber : undefined);
 
-  const featured = getTodayGenre();
-  const featuredTheme = GENRE_THEME[featured];
+  const featuredTheme = getGenreTheme(post?.genre);
 
   const renderContent = () => {
     if (!isValidPostId) {
@@ -55,10 +53,8 @@ function PostDetail() {
         </div>
 
         <div>
-          <span
-            className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${GENRE_THEME[post.genre].badge}`}
-          >
-            {GENRE_THEME[post.genre].label}
+          <span className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${featuredTheme.badge}`}>
+            {featuredTheme.label}
           </span>
           <h1 className={`mt-3 text-2xl font-bold tracking-normal sm:text-3xl ${featuredTheme.heading}`}>
             {post.title}
