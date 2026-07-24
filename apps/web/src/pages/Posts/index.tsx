@@ -1,14 +1,23 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import useGetPosts from '@/hooks/useGetPosts';
 import { getGenreTheme } from '@/libs/utils/genreTheme';
+import useAuthStore from '@/stores/useAuthStore';
 
 function Posts() {
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPosts();
   const posts = data?.pages.flatMap((page) => page.data);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const featuredTheme = getGenreTheme(posts?.[0]?.genre);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', { replace: true });
+  };
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -94,6 +103,14 @@ function Posts() {
     <main className={`min-h-screen px-4 py-6 sm:px-8 sm:py-8 ${featuredTheme.pageBg}`}>
       <div className="mx-auto grid w-full max-w-5xl gap-8">
         <section className={`rounded-lg border p-6 shadow-sm sm:p-8 ${featuredTheme.surface}`}>
+          {user && (
+            <div className={`mb-3 flex items-center justify-end gap-3 text-xs ${featuredTheme.muted}`}>
+              <span>{user.nickname}님</span>
+              <button type="button" onClick={handleLogout} className="font-semibold transition hover:opacity-80">
+                로그아웃
+              </button>
+            </div>
+          )}
           <p className={`text-sm font-semibold ${featuredTheme.accent}`}>
             매일 한 편 · 이번 시즌은 {featuredTheme.label}
           </p>
