@@ -69,7 +69,17 @@ function PostDetail() {
           </div>
         </div>
 
-        <p className={`whitespace-pre-wrap text-sm leading-7 ${featuredTheme.body}`}>{post.content}</p>
+        <div className={`grid gap-4 text-sm leading-7 ${featuredTheme.body}`}>
+          {post.content
+            .split(/\n{2,}/)
+            .map((paragraph) => paragraph.trim())
+            .filter(Boolean)
+            .map((paragraph, index) => (
+              <p key={index} className="whitespace-pre-wrap">
+                {paragraph}
+              </p>
+            ))}
+        </div>
       </article>
     );
   };
