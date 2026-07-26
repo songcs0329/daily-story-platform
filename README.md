@@ -1,6 +1,6 @@
 # daily-story-platform
 
-매일 AI로 단편소설 1편 + 썸네일을 자동 생성해 열람하는 서비스. pnpm workspaces 기반 모노레포.
+매일 AI로 단편소설 여러 편 + 썸네일을 자동 생성해 열람하는 서비스. pnpm workspaces 기반 모노레포.
 
 ## Structure
 

@@ -1,6 +1,6 @@
 # daily-story-platform / web
 
-매일 생성되는 단편소설을 열람하는 프론트엔드. Vite + React 19 + TanStack Query + Zustand + TailwindCSS v4.
+매일 생성되는 단편소설을 열람하는 프론트엔드. 카카오 로그인, 게시물별 댓글 작성/삭제도 지원한다. Vite + React 19 + TanStack Query + Zustand + TailwindCSS v4.
 
 ## 실행
 

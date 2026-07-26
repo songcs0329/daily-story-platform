@@ -1,6 +1,6 @@
 # daily-story-platform / api
 
-단편소설 게시판의 백엔드(NestJS). 게시글 조회 API를 제공한다.
+단편소설 게시판의 백엔드(NestJS). 게시글 조회, 카카오 로그인, 게시물별 댓글(작성/삭제는 인증 필요) API를 제공한다.
 
 > **실제 운영 크론은 이 API가 아니다.** 매일 소설/썸네일 생성 → Supabase Storage 업로드 → `posts` insert까지 전 과정은 `scripts/apps-script/daily-story-generator.gs`(Google Apps Script)가 직접 처리하며, `apps/api`가 떠 있을 필요가 없다. `src/generation/`(`POST /generation`, 헤더 `x-generation-secret`)은 수동/로컬 테스트 전용으로 실제 스케줄에는 붙지 않는다.
 
@@ -15,6 +15,10 @@ pnpm --filter api lint        # eslint --fix
 ## 스택
 
 NestJS + TypeORM + Supabase(Postgres/Storage). DB 스키마는 `supabase/schema.sql`에서 관리하며 `src/posts/entities/*.entity.ts`와 1:1로 맞춘다.
+
+## 라우트
+
+`GET /posts`, `GET /posts/:id`, `POST /auth/kakao/login`, `GET /posts/:postId/comments`, `POST /posts/:postId/comments`(인증 필요), `DELETE /comments/:commentId`(인증 필요).
 
 ## 컨벤션
 
