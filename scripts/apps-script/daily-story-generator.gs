@@ -19,7 +19,9 @@
  * ── 사용법 ────────────────────────────────────────────────
  *   1) Script Properties에 위 3개 값 저장
  *   2) generateDailyPost 를 한 번 수동 실행해서 정상 동작 확인 (실행 로그 확인)
- *   3) Triggers 메뉴에서 generateDailyPost를 매일 시간 기반 트리거로 등록
+ *   3) Triggers 메뉴에서 generateDailyPost를 하루 DAILY_POST_COUNT(기본 2)번,
+ *      시간을 나눠(예: 오전 9시 / 오후 9시) 시간 기반 트리거로 등록
+ *      (트리거 개수 != DAILY_POST_COUNT면 실제 생성량이 어긋나니 둘을 맞춰서 조정한다)
  *
  * ── Gemini 폴백 체인 ──────────────────────────────────────
  *   여러 모델을 순서대로 시도. 하나가 막히면(429 한도 / 503 혼잡 / 404 없음)
@@ -93,6 +95,7 @@ function geminiCall_(prompt, jsonMode) {
     }
     Utilities.sleep(8000); // 한 바퀴 전부 막힘 → 분당한도 회복 대기 후 재시도
   }
+  Logger.log('Gemini 텍스트: 모든 모델 실패(쿼터 초과 또는 과부하 반복)');
   return null; // 모든 모델 실패 (호출부에서 폴백/스킵 처리 권장)
 }
 
@@ -124,6 +127,7 @@ function parseJsonLoose_(txt) {
         /* 그래도 안 되면 포기 */
       }
     }
+    Logger.log('JSON 파싱 실패, 원본 일부: ' + txt.substring(0, 200));
     return null;
   }
 }
@@ -241,8 +245,12 @@ function fetchGenres_() {
   return JSON.parse(res.getContentText());
 }
 
-// 오늘자 게시물이 이미 있으면 true — 트리거 중복 실행/수동 재실행 대비
-function hasTodayPost_() {
+// 하루 목표 게시물 수 — 이 개수에 도달하면 트리거가 스킵한다. script.google.com에서
+// generateDailyPost 트리거를 이 개수만큼 시간을 나눠 등록해야 실제로 여러 편이 생성된다.
+var DAILY_POST_COUNT = 2;
+
+// 오늘자 게시물 개수 — 트리거 중복 실행/일일 목표 도달 여부 판단용
+function countTodayPosts_() {
   var supabaseUrl = getSupabaseUrl_();
   var key = getSupabaseServiceKey_();
   var now = new Date();
@@ -261,9 +269,9 @@ function hasTodayPost_() {
   });
   if (res.getResponseCode() !== 200) {
     Logger.log('오늘 게시물 조회 실패(' + res.getResponseCode() + '), 생성은 계속 진행: ' + res.getContentText());
-    return false;
+    return 0;
   }
-  return JSON.parse(res.getContentText()).length > 0;
+  return JSON.parse(res.getContentText()).length;
 }
 
 // 썸네일 업로드, 공개 URL 반환 (apps/api의 PostsEntity.thumbnailUrl과 동일 포맷)
@@ -318,8 +326,8 @@ function testGenerateDailyPost() {
 }
 
 function generateDailyPost_(force) {
-  if (!force && hasTodayPost_()) {
-    Logger.log('오늘자 게시물이 이미 있어 스킵합니다.');
+  if (!force && countTodayPosts_() >= DAILY_POST_COUNT) {
+    Logger.log('오늘자 게시물이 이미 ' + DAILY_POST_COUNT + '개 있어 스킵합니다.');
     return;
   }
 
@@ -334,7 +342,7 @@ function generateDailyPost_(force) {
     ' 다른 설명 없이 반드시 다음 JSON 형식으로만 응답해: {"title": "제목", "content": "본문"}';
   var story = geminiJson_(storyPrompt);
   if (!story || !story.title || !story.content) {
-    Logger.log('텍스트 생성 실패, 중단합니다.');
+    Logger.log('텍스트 생성 실패, 중단합니다. story=' + JSON.stringify(story));
     return;
   }
 
