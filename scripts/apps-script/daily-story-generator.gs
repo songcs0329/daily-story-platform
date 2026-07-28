@@ -315,6 +315,9 @@ function insertPostToSupabase_(post) {
 }
 
 // ── 메인: 이 함수를 시간 기반 트리거에 연결한다 ──
+// 실패는 전부 throw로 올린다 — Apps Script가 트리거 예외에 대해 스크립트 소유자에게
+// 실패 알림 메일을 자동 발송하므로 별도 알림 코드가 필요 없다.
+// (알림 주기는 script.google.com → 트리거 목록 → 알림에서 '즉시'/'매일' 선택)
 function generateDailyPost() {
   generateDailyPost_(false);
 }
@@ -333,8 +336,7 @@ function generateDailyPost_(force) {
 
   var genres = fetchGenres_();
   if (!genres || genres.length === 0) {
-    Logger.log('장르 목록 조회 실패, 중단합니다.');
-    return;
+    throw new Error('장르 목록 조회 실패, 중단합니다.');
   }
   var genreRow = genres[Math.floor(Math.random() * genres.length)];
   var storyPrompt =
@@ -342,8 +344,7 @@ function generateDailyPost_(force) {
     ' 다른 설명 없이 반드시 다음 JSON 형식으로만 응답해: {"title": "제목", "content": "본문"}';
   var story = geminiJson_(storyPrompt);
   if (!story || !story.title || !story.content) {
-    Logger.log('텍스트 생성 실패, 중단합니다. story=' + JSON.stringify(story));
-    return;
+    throw new Error('텍스트 생성 실패, 중단합니다. story=' + JSON.stringify(story));
   }
 
   var thumbnailPrompt =
@@ -354,8 +355,7 @@ function generateDailyPost_(force) {
     ' 단편소설 표지용 썸네일 이미지를 그려줘. 텍스트나 글자는 넣지 말고, 분위기 있는 일러스트로.';
   var imageBase64 = geminiImageCall_(thumbnailPrompt);
   if (!imageBase64) {
-    Logger.log('이미지 생성 실패, 중단합니다.');
-    return;
+    throw new Error('이미지 생성 실패, 중단합니다.');
   }
 
   var thumbnailUrl = uploadThumbnailToSupabase_(imageBase64);

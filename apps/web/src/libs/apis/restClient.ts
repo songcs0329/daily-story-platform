@@ -13,6 +13,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// JWT 만료/무효 시 로그인 상태가 localStorage에 남아 UI만 로그인처럼 보이는 걸 막는다.
+// ponytail: 리프레시 토큰 없이 그냥 로그아웃 — 재발급 흐름은 토큰 만료가 실제로 성가셔지면 추가
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && useAuthStore.getState().isLoggedIn) {
+      useAuthStore.getState().logout();
+      window.location.replace('/');
+    }
+    return Promise.reject(error);
+  },
+);
+
 const restClient = {
   get: async <T>(url: string, params = {}, config = {}) => {
     const response = await api.get<T>(url, { params, ...config });
