@@ -11,7 +11,13 @@ function PostDetail() {
   const { postId } = useParams<{ postId: string }>();
   const postIdNumber = postId ? Number(postId) : undefined;
   const isValidPostId = Number.isInteger(postIdNumber) && Number(postIdNumber) > 0;
-  const { data: post, isLoading, isError } = useGetPost(isValidPostId ? postIdNumber : undefined);
+  const {
+    data: post,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching,
+  } = useGetPost(isValidPostId ? postIdNumber : undefined);
 
   const featuredTheme = getGenreTheme(post?.genre);
 
@@ -37,8 +43,18 @@ function PostDetail() {
 
     if (isError) {
       return (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-800">
-          이야기를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.
+        <div className="grid justify-items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-800">
+          이야기를 불러오는 중 오류가 발생했습니다.
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            className="border-red-300 bg-white font-semibold text-red-800 hover:bg-red-100 hover:text-red-900"
+          >
+            {isRefetching ? '불러오는 중…' : '다시 시도'}
+          </Button>
         </div>
       );
     }

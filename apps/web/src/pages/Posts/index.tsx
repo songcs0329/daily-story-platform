@@ -9,7 +9,8 @@ import { getGenreTheme } from '@/libs/utils/genreTheme';
 import useAuthStore from '@/stores/useAuthStore';
 
 function Posts() {
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPosts();
+  const { data, isLoading, isError, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetPosts();
   const posts = data?.pages.flatMap((page) => page.data);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -53,8 +54,18 @@ function Posts() {
 
     if (isError) {
       return (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-800">
-          이야기를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.
+        <div className="grid justify-items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-800">
+          이야기를 불러오는 중 오류가 발생했습니다.
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            className="border-red-300 bg-white font-semibold text-red-800 hover:bg-red-100 hover:text-red-900"
+          >
+            {isRefetching ? '불러오는 중…' : '다시 시도'}
+          </Button>
         </div>
       );
     }
