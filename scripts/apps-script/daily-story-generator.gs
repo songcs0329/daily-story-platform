@@ -9,12 +9,11 @@
  * ── 설정 (Script Properties, 프로젝트 설정 → Script Properties) ──────────
  *   GEMINI_API_KEY             aistudio.google.com/apikey
  *   SUPABASE_URL               예: https://xxxx.supabase.co
- *   SUPABASE_SERVICE_ROLE_KEY  Supabase Settings → API Keys → 시크릿 키(sb_secret_...)
- *                              ※ 2025-11-01 이후 생성된 프로젝트는 레거시 JWT service_role
- *                                키가 아예 없음 — 새 sb_secret_ 키를 쓴다. 이 키는 요청이
- *                                "브라우저처럼" 보이면 차단하는데(User-Agent로 판별),
- *                                UrlFetchApp 기본 UA가 여기 걸려서 SUPABASE_USER_AGENT로
- *                                우회한다 (아래 상수).
+ *   SUPABASE_SERVICE_ROLE_KEY  레거시 JWT service_role 키를 쓴다.
+ *                              ※ 새 sb_secret_ 키는 UrlFetchApp을 브라우저로 오인해
+ *                                401로 차단한다. SUPABASE_USER_AGENT 헤더로 우회를
+ *                                시도했으나 실패했고, 레거시 키로 해결했다.
+ *                                레거시 키는 2026년 말 폐기 예정 — 그 전에 재대응 필요.
  *
  * ── 사용법 ────────────────────────────────────────────────
  *   1) Script Properties에 위 3개 값 저장
@@ -54,10 +53,9 @@ function getSupabaseServiceKey_() {
   return PropertiesService.getScriptProperties().getProperty('SUPABASE_SERVICE_ROLE_KEY') || '';
 }
 
-// Supabase의 새 sb_secret_ 키는 User-Agent로 "브라우저처럼 보이는" 요청을 차단한다.
-// UrlFetchApp의 기본 User-Agent가 여기 걸리므로, 시크릿 키를 쓰는 모든 Supabase 호출에
-// 이 헤더를 명시적으로 실어 보낸다 (레거시 service_role JWT 키는 이 제한이 없지만,
-// 2025-11-01 이후 생성된 프로젝트는 레거시 키 자체가 없음).
+// 새 sb_secret_ 키가 UrlFetchApp을 브라우저로 오인해 차단하는 걸 우회하려던 헤더.
+// 우회는 실패했고 결국 레거시 service_role JWT 키를 쓰기로 했다 — 레거시 키에는 이 제한이
+// 없으므로 이 헤더는 사실상 무해한 잔재다. 레거시 키 폐기 시 재대응할 때의 출발점으로 남겨둔다.
 var SUPABASE_USER_AGENT = 'daily-story-generator-apps-script/1.0';
 
 // 핵심: 막히면 다음 모델로 즉시 전환. 전체 한 바퀴 다 막히면 잠깐 쉬고 한 번 더.
